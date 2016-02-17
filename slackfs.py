@@ -22,7 +22,26 @@ class SlackFS(Operations):
         self.db_name = db_name
 
     def _contents(self, path):
-        return 'sample content'
+        
+        # Return contents of a given path
+        # For now, return the issue title and body concatenated
+        if debug: print('_contents path: {}'.format(path))
+
+        if path.startswith('/#'):
+            # Extract channel from filepath; if fails, abort
+            channel = path.strip('/#').strip('.txt')
+            print channel
+
+        contents = []
+
+        cursor = r.db(self.db_name).table(channel).run()
+        for document in cursor:
+            this_message = '{}:\n{}'.format(document['user_name'], document['text'])
+            contents.append(this_message)
+
+        combined_content = '\n----------\n'.join(contents)
+        return combined_content
+
         # # Return contents of a given path
         # # For now, return the issue title and body concatenated
         # if debug: print('_contents path: {}'.format(path))
