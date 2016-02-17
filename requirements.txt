@@ -1,0 +1,9 @@
+click==6.2
+fusepy==2.0.2
+github3.py==0.9.4
+keyring==8.4.1
+requests==2.9.1
+uritemplate.py==0.3.0
+virtualenv==1.11.6
+virtualenvwrapper==4.3
+wsgiref==0.1.2
