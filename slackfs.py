@@ -5,7 +5,6 @@
 
 import os, sys, errno, time
 import click
-from github3 import login
 from random import randint
 from fuse import FUSE, FuseOSError, Operations
 import rethinkdb as r
