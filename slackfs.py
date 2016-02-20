@@ -22,7 +22,6 @@ class SlackFS(Operations):
         self.db_name = db_name
 
     def _contents(self, path):
-        
         # Return contents of a given path
         # For now, return the issue title and body concatenated
         if debug: print('_contents path: {}'.format(path))
@@ -34,7 +33,8 @@ class SlackFS(Operations):
 
         contents = []
 
-        cursor = r.db(self.db_name).table(channel).run()
+        cursor = r.db(self.db_name).table(channel).order_by('timestamp').run()
+
         for document in cursor:
             this_message = '{}:\n{}'.format(document['user_name'], document['text'])
             contents.append(this_message)
