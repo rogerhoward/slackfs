@@ -235,4 +235,7 @@ def new_slackfs(mount, db_host, db_name):
 
 
 if __name__ == '__main__':
+    print('Welcome to slackfs. Use a complete command like...')
+    print('   ./slackfs.py --mount=./test --db_host=lab.lbcpu.com --db_name=hookdb')
+    print('...or follow the interactive prompts.')
     new_slackfs()
