@@ -218,6 +218,7 @@ class SlackFS(Operations):
         return True
 
 
+# Use Python click decorators to handle command line options
 @click.command()
 @click.option('--mount', prompt='Mount point',
               help='The path where the filesystem will be mounted.')
@@ -235,7 +236,10 @@ def new_slackfs(mount, db_host, db_name):
 
 
 if __name__ == '__main__':
+    # Print out welcome instructions prior to execution
     print('Welcome to slackfs. Use a complete command like...')
     print('   ./slackfs.py --mount=./test --db_host=lab.lbcpu.com --db_name=hookdb')
     print('...or follow the interactive prompts.')
+
+    # Initiative slackfs, including any command line option handling
     new_slackfs()
