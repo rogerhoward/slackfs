@@ -3,9 +3,10 @@
 # Based on MIT-licensed code from:
 # https://www.stavros.io/posts/python-fuse-filesystem/
 
-import os, sys, errno
+import os, sys, errno, time
 import click
 from github3 import login
+from random import randint
 from fuse import FUSE, FuseOSError, Operations
 import rethinkdb as r
 
@@ -36,11 +37,22 @@ class SlackFS(Operations):
         cursor = r.db(self.db_name).table(channel).order_by('timestamp').run()
 
         for document in cursor:
-            this_message = '{}:\n{}'.format(document['user_name'], document['text'])
+            message_data = {}
+            message_data['timestamp'] = document['timestamp'].encode('utf-8')
+            message_data['channel'] = channel.encode('utf-8')
+            if 'bot_name' in document:
+                message_data['user_name'] = document['bot_name'].encode('utf-8')
+            else:
+                message_data['user_name'] = document['user_name'].encode('utf-8')
+            message_data['text'] = document['text'].encode('utf-8')
+
+            message_template = '{timestamp}) {channel}/{user_name}:\n{text}'
+            this_message = message_template.format(**message_data)
+
             contents.append(this_message)
 
-        combined_content = '\n----------\n'.join(contents)
-        return str(combined_content)
+        combined_content = '\n----------\n'.encode('utf-8').join(contents)
+        return combined_content
 
     # Filesystem methods
     # ==================
@@ -48,8 +60,9 @@ class SlackFS(Operations):
     def access(self, path, mode):
         if debug: print('access mode: {}, path: {}'.format(mode, path))
         # Mock
-        if False:
-            raise FuseOSError(errno.EACCES)
+        # if False:
+        #     raise FuseOSError(errno.EACCES)
+        # return True
 
     def chmod(self, path, mode):
         if debug: print('chmod mode: {}, path: {}'.format(mode, path))
@@ -66,16 +79,24 @@ class SlackFS(Operations):
 
         ignore_paths = ['/._.', '.gitignore']
 
+        unix_timestamp = int(time.time())
+
+        s = {'st_nlink': 1, 'st_mode': 16877, 'st_size': 0, 'st_gid': 20, 'st_uid': 501, 'st_ctime': unix_timestamp, 'st_mtime': unix_timestamp, 'st_atime': unix_timestamp}
+
         # If path is a directory
         if path.endswith('/'):
-            s = {'st_ctime': 1450647916.0, 'st_mtime': 1450647886.0, 'st_nlink': 19, 'st_mode': 16877, 'st_size': 0, 'st_gid': 20, 'st_uid': 501, 'st_atime': 1455426628.0}
+            s['st_mode'] = 16877
+            s['st_size'] = 0
         # Else if path is a hidden file
         elif ('/.' in path):
-            s = {'st_ctime': 1450647916.0, 'st_mtime': 1450647886.0, 'st_nlink': 19, 'st_mode': 33188, 'st_size': 0, 'st_gid': 20, 'st_uid': 501, 'st_atime': 1455426628.0}
+            s['st_mode'] = 33188
+            s['st_size'] = 0
         # Else if path is anything else, assume it's an issue entry
         else:
             path_content = self._contents(path)
-            s = {'st_ctime': 1450647916.0, 'st_mtime': 1450647886.0, 'st_nlink': 19, 'st_mode': 33188, 'st_size': len(path_content), 'st_gid': 20, 'st_uid': 501, 'st_atime': 1455426628.0}
+            s['st_mode'] = 33188
+            s['st_size'] = len(path_content)
+            s['st_ino'] = randint(1, 10000000)
         return s
 
     def readdir(self, path, fh):
@@ -93,6 +114,7 @@ class SlackFS(Operations):
             for table in tables:
                 table_filename = '#{}.txt'.format(table)[:255]
                 children.append(table_filename)
+                print table_filename
 
             # Return a generator object for each entry in children
             for entry in children:
@@ -123,6 +145,7 @@ class SlackFS(Operations):
         if debug: print('statfs path: {}'.format(path))
         # Mocked up statfs return values for now
         # Mostly nonsensical but functional
+
         return {'f_bsize': 1048576, 'f_bavail': 0, 'f_favail': 7745916, 'f_files': 3, 'f_frsize': 4096, 'f_blocks': 29321728, 'f_ffree': 7745916, 'f_bfree': 0, 'f_namemax': 255, 'f_flag': 0}
 
     def unlink(self, path):
@@ -182,7 +205,7 @@ class SlackFS(Operations):
     def flush(self, path, fh):
         if debug: print('flush path: {}'.format(path))
         # Mock
-        return True
+        # return True
 
     def release(self, path, fh):
         if debug: print('release path: {}'.format(path))
