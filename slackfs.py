@@ -40,28 +40,7 @@ class SlackFS(Operations):
             contents.append(this_message)
 
         combined_content = '\n----------\n'.join(contents)
-        return combined_content
-
-        # # Return contents of a given path
-        # # For now, return the issue title and body concatenated
-        # if debug: print('_contents path: {}'.format(path))
-
-        # # Extract issue from filepath, coerce to int; if fails, abort
-        # try:
-        #     issue = int(path.strip('/').split('_')[0])
-        # except:
-        #     return False
-
-        # if debug: print('_contents issue: {}'.format(issue))
-
-        # # Get Github issue
-        # gh = login(self.username, self.password)
-        # issue = gh.issue(self.username, self.repo, issue)
-
-        # # Concatanate issue title and body and return as file content
-        # issue_contents = 'Title: {}\n-----\n{}\n'.format(issue.title, issue.body)
-        # if debug: print('_contents issue_contents: {}'.format(issue_contents))
-        # return issue_contents
+        return str(combined_content)
 
     # Filesystem methods
     # ==================
